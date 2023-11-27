@@ -9,7 +9,5 @@ int main(int args, char *argv[])
 	
 	asm_run assembler_run(argv[1]);
 
-	std::cout << "Hello" << std::endl;
-
 	return 0;
 }
