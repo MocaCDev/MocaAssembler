@@ -1,0 +1,15 @@
+use16
+org 0x7C00
+
+!variable db 0x25
+    .daddy db 0x0
+    .daddy2 db 0x0
+
+mov ax, 0x0
+mov ax, 0x0
+!variable2 db 0x25
+!variable3 dw FFFFh
+!variable4 db 0x25
+mov ax, 0x0
+!variable5 db 0x0
+mov ax, 0x0

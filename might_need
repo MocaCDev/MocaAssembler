@@ -1,0 +1,50 @@
+For: preprocessor_check_for_ignored_line
+/* First, see if the current line has a variable.
+             * If it does, go ahead and add a memory address to it, increment
+             * the variable ID and continue onward to the loop.
+             * */
+            auto try_to_find = std::find(
+            	p_lines_to_ignore.cbegin(), 
+            	p_lines_to_ignore.cend(), 
+            	get_line());
+            
+            if(*try_to_find == get_line())
+            {
+                add_mem_address_to_variable(
+                	variable_id, 
+                	counters[counters_index], 
+                	get_program_origin());
+                variable_id++;
+
+                p_lines_to_ignore.erase(try_to_find);
+
+                /* We only want to set `mem_addr_has_been_assigned` to true if
+                 * ALL variables have been assigned a memory address.
+                 * */
+                if(try_to_find == p_lines_to_ignore.cend())
+                    mem_addr_has_been_assigned = true;
+
+                was_found = true;
+            }
+
+            for(auto i = p_lines_to_ignore.cbegin(); i != p_lines_to_ignore.cend(); i++)
+                if(*i == line)
+                {
+                    add_mem_address_to_variable(
+                        variable_id, 
+                        counters[counters_index], 
+                        get_program_origin());
+                    variable_id++;
+
+                    /* Since it was found, increment the line and repeat the loop.
+                     * Erase the current line from the vector, reset `i` and continue.
+                     * */
+                    line++;
+                    p_lines_to_ignore.erase(i);
+
+                    if(i == p_lines_to_ignore.cend())
+                        mem_addr_has_been_assigned = true;
+
+                    i = p_lines_to_ignore.cbegin();
+                    was_found = true;
+                }

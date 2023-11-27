@@ -1,0 +1,5 @@
+use16
+org 0x7C00
+mov al, 0x0
+
+!data3 db 69
