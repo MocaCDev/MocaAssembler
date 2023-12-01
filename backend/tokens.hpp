@@ -225,7 +225,7 @@ namespace MocaAssembler_Tokens
             return true;
         }
 
-        constexpr void assign_token_data(p_usint8 tval, usint8 tid, TokenTypes tt_id)
+        inline constexpr void assign_token_data(p_usint8 tval, usint8 tid, TokenTypes tt_id)
         {
             if(token_value) free(token_value);
             token_value = tval;
@@ -234,10 +234,10 @@ namespace MocaAssembler_Tokens
             token_type_id = tt_id;
         }
 
-        constexpr p_usint8 get_token_value() { return token_value; }
-        constexpr usint8 get_token_id() { return token_id; }
-        constexpr TokenTypes get_token_type_id() { return token_type_id; }
-        constexpr void reset_token_data()
+        inline constexpr p_usint8 get_token_value() { return token_value; }
+        inline constexpr usint8 get_token_id() { return token_id; }
+        inline constexpr TokenTypes get_token_type_id() { return token_type_id; }
+        inline constexpr void reset_token_data()
         {
             token_id = (usint8)0;
             token_type_id = TokenTypes::Empty;

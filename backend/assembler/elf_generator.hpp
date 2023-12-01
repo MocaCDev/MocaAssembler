@@ -24,7 +24,7 @@ namespace MocaAssembler_ElfGenerator
         elfio writer;
         section *text_section_data;
 
-        void init_writer()
+        inline void init_writer()
         {
             writer.set_os_abi(OS_ABI);
 
@@ -37,7 +37,7 @@ namespace MocaAssembler_ElfGenerator
     
     protected:
         /* Called only by the assembler, the heir to `ElfGenerator` */
-        void init_text_section()
+        inline void init_text_section()
         {
             text_section_data = writer.sections.add(".text");
 

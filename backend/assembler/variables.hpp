@@ -62,7 +62,7 @@ namespace MocaAssembler_Variables
     {
     protected:
         /* `bit16_metadata` is used for assigning data that will be stored in `bit16_variable_metadata`. */
-        //struct variable_metadata<usint16> bit16_metadata;
+        struct variable_metadata<usint16> bit16_metadata;
         std::vector<struct variable_metadata<usint16>> bit16_variable_metadata;
         uslng bit16_length;
 
@@ -173,7 +173,10 @@ namespace MocaAssembler_Variables
                 "[Unknown Error]\n\tAn unknown error ocurred.\n")
         }
 
-        constexpr void see_names(usint8 bit_type)
+        /* Temporary.
+         * TODO: Remove.
+         * */
+        inline constexpr void see_names(usint8 bit_type)
         {
             switch(bit_type)
             {
@@ -208,9 +211,7 @@ namespace MocaAssembler_Variables
                 || std::is_same<T, usint32>::value
         void add_variable(p_usint8 variable_name, usint8 variable_datatype, T variable_value, usint8 bit_type = 0x2) /* 0x2 = BitType::NoneSet */
         {
-            struct variable_metadata<usint16> bit16_metadata;
-
-            const auto add_to_bit16_vector = [this, &bit16_metadata, &variable_name, &variable_datatype]()
+            const auto add_to_bit16_vector = [this, &variable_name, &variable_datatype]()
             {
                 strcpy((p_int8)bit16_metadata.variable_name, (cp_int8)variable_name);
                 bit16_metadata.variable_address = bit16_length + bit32_length;
@@ -225,7 +226,9 @@ namespace MocaAssembler_Variables
                 }
                 else
                     bit16_variable_metadata[bit16_length].variable_address += bit16_variable_metadata[bit16_length].subset_variables_count;
-                    
+                
+                /* Zero out the memory. */
+                memset(bit16_metadata.variable_name, 0, strlen((cp_int8)bit16_metadata.variable_name));
                 bit16_length++;
             };
 
@@ -266,12 +269,13 @@ namespace MocaAssembler_Variables
             }
         }
 
+        /* TODO: Make this compatible with assembly program bit type (16-bit/32-bit). */
         template<typename T>
             requires std::is_same<T, usint8>::value
                 || std::is_same<T, p_usint8>::value
                 || std::is_same<T, usint16>::value
                 || std::is_same<T, usint32>::value
-        void add_subset_variable(p_usint8 variable_name, usint8 variable_datatype, T variable_value)
+        inline void add_subset_variable(p_usint8 variable_name, usint8 variable_datatype, T variable_value)
         {
             struct subset_variable_metadata<usint16> svar_metadata;
             
@@ -288,6 +292,9 @@ namespace MocaAssembler_Variables
             bit16_variable_metadata[bit16_length-1].subset_variables_count++;
             
             bit16_variable_metadata[bit16_length-1].subset_variables.push_back(svar_metadata);
+
+            /* Zero out the memory. */
+                memset(svar_metadata.subset_variable_name, 0, strlen((cp_int8)svar_metadata.subset_variable_name));
         }
 
         usint32 last_program_counter = 0;

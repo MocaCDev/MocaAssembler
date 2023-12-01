@@ -17,7 +17,7 @@ namespace MocaAssembler_Parser
 
         /* Temporary.
          * TODO: Remove. */
-        constexpr p_usint8 decipher_size(usint8 size)
+        inline constexpr p_usint8 decipher_size(usint8 size)
         {
             switch(size)
             {

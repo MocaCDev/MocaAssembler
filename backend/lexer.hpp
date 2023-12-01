@@ -80,15 +80,15 @@ namespace MocaAssembler_Lexer
             return false;
         }
 
-        constexpr uslng get_line() { return line; }
-        constexpr p_int8 get_filename() { return assembly_filename; }
-        constexpr usint8 get_last_line_index() { return last_line_index; }
-        constexpr usint8 get_current_char() { return current_char; }
-        constexpr usint8 get_line_index() { return line_index; }
+        inline constexpr uslng get_line() { return line; }
+        inline constexpr p_int8 get_filename() { return assembly_filename; }
+        inline constexpr usint8 get_last_line_index() { return last_line_index; }
+        inline constexpr usint8 get_current_char() { return current_char; }
+        inline constexpr usint8 get_line_index() { return line_index; }
 
     private:
 
-        void lexer_go_back()
+        inline void lexer_go_back()
         {
             if(index > 0)
             {
@@ -223,7 +223,7 @@ namespace MocaAssembler_Lexer
             return decimal_value;
         }
 
-        constexpr void attempt_to_tokenize(cp_int8 keyword, const cp_int8 token_array[], uslng token_array_size, token& tok, TokenTypes token_type, usint8 increment = 0)
+        inline constexpr void attempt_to_tokenize(cp_int8 keyword, const cp_int8 token_array[], uslng token_array_size, token& tok, TokenTypes token_type, usint8 increment = 0)
         {
             for(usint8 i = 0; i < token_array_size; i++)
             {
