@@ -18,7 +18,7 @@ namespace MocaAssembler_Lexer
         uslng line = 1;
         usint8 current_char;
 
-        constexpr void lexer_advance(bool skip_newline = true)
+        inline constexpr void lexer_advance(bool skip_newline = true)
         {
             if(index + 1 > assembly_data_size || assembly_data[index + 1] == '\0')
                 { current_char = '\0'; return; }
@@ -34,7 +34,7 @@ namespace MocaAssembler_Lexer
             current_char = assembly_data[index];
         }
 
-        constexpr usint8 seek_and_return(uslng seek_length)
+        inline constexpr usint8 seek_and_return(uslng seek_length)
         {
             uslng curr_index = index;
             
@@ -45,7 +45,7 @@ namespace MocaAssembler_Lexer
             return assembly_data[curr_index];
         }
 
-        void lexer_go_back_x(uslng seek_back_length)
+        inline void lexer_go_back_x(uslng seek_back_length)
         {
             if(index - seek_back_length >= 0)
             {
@@ -58,7 +58,7 @@ namespace MocaAssembler_Lexer
             current_char = assembly_data[0];
         }
 
-        constexpr void reset_lexer_data() noexcept
+        inline constexpr void reset_lexer_data() noexcept
         {
             index = 0;
             current_char = assembly_data[index];
@@ -73,7 +73,7 @@ namespace MocaAssembler_Lexer
             }
         }
 
-        constexpr bool seek_and_test(uslng seek_length, usint8 test_against) noexcept
+        inline constexpr bool seek_and_test(uslng seek_length, usint8 test_against) noexcept
         {
             if(seek_and_return(seek_length) == test_against) return true;
 
@@ -97,7 +97,7 @@ namespace MocaAssembler_Lexer
             }
         }
 
-        constexpr void lexer_seek_and_set(uslng seek_length)
+        inline constexpr void lexer_seek_and_set(uslng seek_length)
         {
             if(index + seek_length > assembly_data_size)
             {
@@ -111,7 +111,7 @@ namespace MocaAssembler_Lexer
             current_char = assembly_data[index];
         }
 
-        constexpr void check_for_whitespace(usint8 specific = 0)
+        inline constexpr void check_for_whitespace(usint8 specific = 0)
         {
             if(specific != 0)
             {
@@ -128,7 +128,7 @@ namespace MocaAssembler_Lexer
             }
         }
 
-        p_usint8 get_keyword(bool allow_special = false)
+        inline p_usint8 get_keyword(bool allow_special = false)
         {
             p_usint8 keyword = static_cast<p_usint8>(calloc(1, sizeof(*keyword)));
             usint32 i = 0;
@@ -166,7 +166,7 @@ namespace MocaAssembler_Lexer
             return keyword;
         }
 
-        p_usint8 get_hexadecimal()
+        inline p_usint8 get_hexadecimal()
         {
             p_usint8 hexadecimal_value = static_cast<p_usint8>(calloc(1, sizeof(*hexadecimal_value)));
             usint32 i = 0;
@@ -187,7 +187,7 @@ namespace MocaAssembler_Lexer
             return hexadecimal_value;
         }
 
-        p_usint8 get_decimal()
+        inline p_usint8 get_decimal()
         {
             p_usint8 decimal_value = static_cast<p_usint8>(calloc(1, sizeof(*decimal_value)));
             usint32 i = 0;

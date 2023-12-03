@@ -75,7 +75,7 @@ namespace MocaAssembler
         inline constexpr BitType assembler_get_bit_type() noexcept { return bit_type; }
         inline constexpr void assembler_set_bit_type(BitType bt) noexcept { bit_type = bt; }
 
-        void assembler_init_new_instruction(instructions instruction)
+        inline void assembler_init_new_instruction(instructions instruction)
         {
             if(!idata) idata = new struct instruction_data;
 
