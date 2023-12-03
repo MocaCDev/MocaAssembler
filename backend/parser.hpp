@@ -17,7 +17,7 @@ namespace MocaAssembler_Parser
 
         /* Temporary.
          * TODO: Remove. */
-        inline constexpr p_usint8 decipher_size(usint8 size)
+        constexpr p_usint8 decipher_size(usint8 size)
         {
             switch(size)
             {
@@ -191,26 +191,6 @@ namespace MocaAssembler_Parser
             }
 
             p_lines_to_ignore.push_back(get_line());
-
-            /* Check to see if there exists any sort of code.
-             * If so, set `has_code` to true so the preprocessor knows to search
-             * for code or not.
-             *
-             * `has_code` saves a bit of time in regards to the preprocessor and the parser.
-             * If there is no code to be found, the preprocessor jumps straight into assigning 
-             * variables there according memory address; furthermore, it also prevents the 
-             * parser from doing any further work.
-             * 
-             * */
-            if(seek_and_return(1) == '\n' || get_current_char() == '\n')
-            {
-                usint8 i = 0;
-                while(!is_ascii(seek_and_return(i)) && !(seek_and_return(i) == '\0'))
-                    i++;
-
-                if(is_ascii(seek_and_return(i)))
-                    has_code = true;
-            }
         }
 
         void parser_next(token& tok)
@@ -254,7 +234,6 @@ namespace MocaAssembler_Parser
             : Preprocessor(filename)
         {
             token tok;
-
             while((tok = try_get_token<VariableDeclaration>()).get_token_value() != nullptr)
             {
                 /* Although it seems as though this is not needed, it very much is.
@@ -266,10 +245,7 @@ namespace MocaAssembler_Parser
 
                 parse_variable_declaration(tok);
             }
-
-            /* Get rid of the last token state. */
-            tok.reset_token_data();
-
+            
             start_preprocessor(p_lines_to_ignore, tok, has_code);
 
             if(has_code)

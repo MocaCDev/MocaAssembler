@@ -1,5 +1,17 @@
 use16
 org 0x7C00
+
+mov dx, 0x0
+mov al, 0x0
 mov al, 0x0
 
-!data3 db 69
+!data dd 0x69
+
+
+
+mov ax, 0x0
+
+
+
+
+!nigger db 0x78

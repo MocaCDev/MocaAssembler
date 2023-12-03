@@ -60,8 +60,8 @@ namespace MocaAssembler
         BitType bit_type;
         struct instruction_data *idata;
 
-        inline void increment_program_counter(uslng amount = 1) { program_counter+=amount; }
-        inline void reset_assembler_data()
+        void increment_program_counter(uslng amount = 1) { program_counter+=amount; }
+        void reset_assembler_data()
         {
             program_counter = 1;
             bin_data_index = 0;
@@ -69,13 +69,13 @@ namespace MocaAssembler
             if(bin_data) free(bin_data);
         }
         
-        inline constexpr uslng get_program_counter() noexcept { return program_counter; }
-        inline constexpr uslng get_program_origin() noexcept { return origin; }
-        inline constexpr void set_origin(uslng program_origin) noexcept { origin = program_origin; }
-        inline constexpr BitType assembler_get_bit_type() noexcept { return bit_type; }
-        inline constexpr void assembler_set_bit_type(BitType bt) noexcept { bit_type = bt; }
+        constexpr uslng get_program_counter() noexcept { return program_counter; }
+        constexpr uslng get_program_origin() noexcept { return origin; }
+        constexpr void set_origin(uslng program_origin) noexcept { origin = program_origin; }
+        constexpr BitType assembler_get_bit_type() noexcept { return bit_type; }
+        constexpr void assembler_set_bit_type(BitType bt) noexcept { bit_type = bt; }
 
-        inline void assembler_init_new_instruction(instructions instruction)
+        void assembler_init_new_instruction(instructions instruction)
         {
             if(!idata) idata = new struct instruction_data;
 

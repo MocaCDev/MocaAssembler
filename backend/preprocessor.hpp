@@ -24,70 +24,16 @@ namespace MocaAssembler_PreProcessor
         bool skip_first_line = false;
         bool skip_second_line = false;
 
-        /* Important vectors for deciphering whether or not to retain the next program counter
-         * or keep with the current program counter.
-         *
-         * `empty_lines` are lines with absolutely no code/variable declaration.
-         * `non_empty_lines` are lines with instructions (code).
-         * `counters` is a vector consisting of the counter thereafter parsing through an instruction.
-         *      This vector is critical for it helps decipher the memory address of each variable.
-         * */
-        std::vector<uslng> empty_lines{0};
-        std::vector<uslng> non_empty_lines{0};
-        std::vector<uslng> counters{0};
+        std::vector<uslng> counters;
 
-        void preprocessor_check_for_ignored_line(std::vector<uslng>& p_lines_to_ignore, uslng increment=0)
+        void assign_mem_address()
         {
-            /* Make sure the first index of `counters` is zero.
-             * This is critical for if the first index is not zero, the variable
-             * addresses will be off.
-             *
-             * Normally, the first index always consists of a garbage value.
-             * */
-            if(counters[0] != 0) counters[0] = 0;
-
-            uslng line = get_line();
-            static uslng counters_index = 0;
-
-            recheck_line:
-            while(*std::find(
-                empty_lines.cbegin(),
-                empty_lines.cend(),
-                line
-            ) == line)
-                line++;
-
-            while(*std::find(
-                non_empty_lines.cbegin(),
-                non_empty_lines.cend(),
-                line
-            ) == line)
-            {
-                line++;
-
-                if(counters_index < counters.size()-1)
-                    counters_index++;
-            }
-
-            auto line_found = std::find(
-                p_lines_to_ignore.cbegin(),
-                p_lines_to_ignore.cend(),
-                line
+            add_mem_address_to_variable(
+                variable_id,
+                counters[counters.size()-1],
+                get_program_origin()
             );
-
-            if(*line_found == line)
-            {
-                add_mem_address_to_variable(
-                    variable_id,
-                    counters[counters_index],
-                    get_program_origin()
-                );
-
-                line++;
-                variable_id++;
-
-                goto recheck_line;
-            }
+            variable_id++;
         }
 
         void preprocessor_parse_instruction(token& tok, std::vector<uslng> p_lines_to_ignore)
@@ -167,13 +113,29 @@ namespace MocaAssembler_PreProcessor
             if(!has_code)
                 return;
 
-            while(tok.get_token_id() != (usint8)GeneralTokens::GK_eof)
+            while(tok.get_token_id() != (usint8)GeneralTokens::GK_eof && get_current_char() != '\0')
             {
                 /* This is critical. If there is no `use16`/`use32` directive found on the
                  * first/second line, we will safely assume the assembly program is 32-bit.
                  * */
                 if(assembler_get_bit_type() == BitType::NoneSet && (get_line()) > 1)
                     assembler_set_bit_type(BitType::bit32);
+
+                if(get_current_char() == '\n')
+                {
+                    while(get_current_char() == '\n') lexer_advance();
+
+                    if(get_current_char() == '!')
+                    {
+                        assign_mem_address();
+
+                        while(seek_and_return(1) != '\n' && seek_and_return(1) != '\0')
+                            lexer_advance();
+
+                        lexer_advance();
+                        continue;
+                    }
+                }
 
                 if((tok = try_get_token<InstructionTokens>()).get_token_value() != nullptr)
                 {
@@ -259,74 +221,38 @@ namespace MocaAssembler_PreProcessor
              * */
             reset_lexer_data();
 
-            /* Perform the according checks. */
-            preprocessor_checks(tok, p_lines_to_ignore, has_code);
+            while(get_current_char() != '\0')
+            {
+                /* Check to see if there exists any sort of code.
+                 * If so, set `has_code` to true so the preprocessor knows to search
+                 * for code or not.
+                 *
+                 * `has_code` saves a bit of time in regards to the preprocessor and the parser.
+                 * If there is no code to be found, the preprocessor jumps straight into assigning 
+                 * variables there according memory address; furthermore, it also prevents the 
+                 * parser from doing any further work.
+                 * 
+                 * */
+                if(seek_and_return(1) == '\n' || get_current_char() == '\n')
+                {
+                    usint8 i = 0;
+                    while(!is_ascii(seek_and_return(i)) && !(seek_and_return(i) == '\0'))
+                        i++;
+
+                    if(is_ascii(seek_and_return(i)))
+                        has_code = true;
+                }
+
+                lexer_advance();
+            }
+
             reset_lexer_data();
 
-            {
-                /* Find all empty/non-empty lines. */
-                while(get_current_char() != '\0')
-                {
-                    if(get_current_char() == '\n' && seek_and_return(1) == '\n')
-                    {
-                        lexer_advance();
+            /* Get rid of the last token state. */
+            tok.reset_token_data();
 
-                        /* Continue to add empty lines so long as they exist. */
-                        while(seek_and_return(1) == '\n')
-                        {
-                            empty_lines.push_back(get_line());
-                            lexer_advance();
-                        }
-                    }
-
-                    if(get_current_char() == '\n' && (seek_and_return(1) != '!' && seek_and_return(1) != ' '))
-                    {
-                        lexer_advance();
-
-                        /* Skip the first/second line if need be. */
-                        if((skip_first_line && get_line()-1 == 1) ||
-                           (skip_second_line && get_line()-1 == 2))
-                            continue;
-
-                        non_empty_lines.push_back(get_line());
-                    }
-                    lexer_advance();
-                }
-
-                reset_lexer_data();
-
-                /* Assign the memory addresses accordingly. */
-                while(get_current_char() != '\0')
-                {
-                    /* If we are at the beginning of a line, figure out if the said line
-                     * is one with a variable declaration; if so, the variable will get a memory address
-                     * assigned to it.
-                     * */
-                    if(get_line_index() == 0)
-                    {
-                        preprocessor_check_for_ignored_line(p_lines_to_ignore, 1);
-                    }
-
-                    lexer_advance();
-                }
-
-                /* Debug info.
-                 * TODO: Remove.
-                 * */
-                see_names((usint8)assembler_get_bit_type());
-
-                reset_assembler_data();
-                reset_lexer_data();
-                tok.reset_token_data();
-
-                /* Clear out all vectors. */
-                p_lines_to_ignore.clear();
-                counters.clear();
-                empty_lines.clear();
-                non_empty_lines.clear();
-
-                return;
-            }
+            /* Perform the according checks. */
+            preprocessor_checks(tok, p_lines_to_ignore, has_code);
 
             see_names((usint8)assembler_get_bit_type());
 

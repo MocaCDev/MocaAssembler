@@ -17,11 +17,12 @@ namespace MocaAssembler_Lexer
         uslng_lng assembly_data_size = 0;
         uslng line = 1;
         usint8 current_char;
+        uslng max_line = line;
 
-        inline constexpr void lexer_advance(bool skip_newline = true)
+        constexpr void lexer_advance(bool skip_newline = true)
         {
             if(index + 1 > assembly_data_size || assembly_data[index + 1] == '\0')
-                { current_char = '\0'; return; }
+                { current_char = '\0'; max_line = line; return; }
             
             if(current_char == '\n')
             {
@@ -34,7 +35,7 @@ namespace MocaAssembler_Lexer
             current_char = assembly_data[index];
         }
 
-        inline constexpr usint8 seek_and_return(uslng seek_length)
+        constexpr usint8 seek_and_return(uslng seek_length)
         {
             uslng curr_index = index;
             
@@ -45,7 +46,7 @@ namespace MocaAssembler_Lexer
             return assembly_data[curr_index];
         }
 
-        inline void lexer_go_back_x(uslng seek_back_length)
+        void lexer_go_back_x(uslng seek_back_length)
         {
             if(index - seek_back_length >= 0)
             {
@@ -58,7 +59,7 @@ namespace MocaAssembler_Lexer
             current_char = assembly_data[0];
         }
 
-        inline constexpr void reset_lexer_data() noexcept
+        constexpr void reset_lexer_data() noexcept
         {
             index = 0;
             current_char = assembly_data[index];
@@ -73,36 +74,19 @@ namespace MocaAssembler_Lexer
             }
         }
 
-        inline constexpr bool seek_and_test(uslng seek_length, usint8 test_against) noexcept
+        constexpr bool seek_and_test(uslng seek_length, usint8 test_against) noexcept
         {
             if(seek_and_return(seek_length) == test_against) return true;
 
             return false;
         }
 
-        inline constexpr uslng get_line() { return line; }
-        inline constexpr p_int8 get_filename() { return assembly_filename; }
-        inline constexpr usint8 get_last_line_index() { return last_line_index; }
-        inline constexpr usint8 get_current_char() { return current_char; }
-        inline constexpr usint8 get_line_index() { return line_index; }
-
-    private:
-
-        inline void lexer_go_back()
-        {
-            if(index > 0)
-            {
-                index--;
-                current_char = assembly_data[index];
-            }
-        }
-
-        inline constexpr void lexer_seek_and_set(uslng seek_length)
+        constexpr void lexer_seek_and_set(uslng seek_length)
         {
             if(index + seek_length > assembly_data_size)
             {
                 index = assembly_data_size;
-                current_char = assembly_data[index];
+                current_char = '\0';
 
                 return;
             }
@@ -111,7 +95,25 @@ namespace MocaAssembler_Lexer
             current_char = assembly_data[index];
         }
 
-        inline constexpr void check_for_whitespace(usint8 specific = 0)
+        constexpr uslng get_line() { return line; }
+        constexpr p_int8 get_filename() { return assembly_filename; }
+        constexpr usint8 get_last_line_index() { return last_line_index; }
+        constexpr usint8 get_current_char() { return current_char; }
+        constexpr usint8 get_line_index() { return line_index; }
+        constexpr uslng get_max_line() { return max_line; }
+
+    private:
+
+        void lexer_go_back()
+        {
+            if(index > 0)
+            {
+                index--;
+                current_char = assembly_data[index];
+            }
+        }
+
+        constexpr void check_for_whitespace(usint8 specific = 0)
         {
             if(specific != 0)
             {
@@ -128,7 +130,7 @@ namespace MocaAssembler_Lexer
             }
         }
 
-        inline p_usint8 get_keyword(bool allow_special = false)
+       p_usint8 get_keyword(bool allow_special = false)
         {
             p_usint8 keyword = static_cast<p_usint8>(calloc(1, sizeof(*keyword)));
             usint32 i = 0;
@@ -166,7 +168,7 @@ namespace MocaAssembler_Lexer
             return keyword;
         }
 
-        inline p_usint8 get_hexadecimal()
+        p_usint8 get_hexadecimal()
         {
             p_usint8 hexadecimal_value = static_cast<p_usint8>(calloc(1, sizeof(*hexadecimal_value)));
             usint32 i = 0;
@@ -187,7 +189,7 @@ namespace MocaAssembler_Lexer
             return hexadecimal_value;
         }
 
-        inline p_usint8 get_decimal()
+        p_usint8 get_decimal()
         {
             p_usint8 decimal_value = static_cast<p_usint8>(calloc(1, sizeof(*decimal_value)));
             usint32 i = 0;
@@ -223,7 +225,7 @@ namespace MocaAssembler_Lexer
             return decimal_value;
         }
 
-        inline constexpr void attempt_to_tokenize(cp_int8 keyword, const cp_int8 token_array[], uslng token_array_size, token& tok, TokenTypes token_type, usint8 increment = 0)
+        constexpr void attempt_to_tokenize(cp_int8 keyword, const cp_int8 token_array[], uslng token_array_size, token& tok, TokenTypes token_type, usint8 increment = 0)
         {
             for(usint8 i = 0; i < token_array_size; i++)
             {
