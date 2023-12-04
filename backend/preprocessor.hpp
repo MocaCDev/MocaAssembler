@@ -24,7 +24,7 @@ namespace MocaAssembler_PreProcessor
         bool skip_first_line = false;
         bool skip_second_line = false;
 
-        std::vector<uslng> counters;
+        std::vector<uslng> counters{0};
 
         void assign_mem_address()
         {
@@ -121,11 +121,14 @@ namespace MocaAssembler_PreProcessor
                 if(assembler_get_bit_type() == BitType::NoneSet && (get_line()) > 1)
                     assembler_set_bit_type(BitType::bit32);
 
+                if(seek_and_return(1) == '\0')
+                    break;
+
                 if(get_current_char() == '\n')
                 {
                     while(get_current_char() == '\n') lexer_advance();
 
-                    if(get_current_char() == '!')
+                    if(get_current_char() == '!' || (get_current_char() == ' ' && seek_and_return(4) == '.'))
                     {
                         assign_mem_address();
 
@@ -133,8 +136,12 @@ namespace MocaAssembler_PreProcessor
                             lexer_advance();
 
                         lexer_advance();
-                        continue;
                     }
+
+                    if(get_line() == get_max_line())
+                        break;
+
+                    continue;
                 }
 
                 if((tok = try_get_token<InstructionTokens>()).get_token_value() != nullptr)
