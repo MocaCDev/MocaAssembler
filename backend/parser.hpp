@@ -101,6 +101,26 @@ namespace MocaAssembler_Parser
                     set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
                     
                     attempt_get_expected_token(tok, get_line(), ',');
+                    
+                    if(seek_and_return(1) == '[')
+                    {
+                        set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
+                        attempt_get_expected_token(tok, get_line(), '[');
+
+                        set_token_types_to_expect(TokenTypes::variable_declaration, TokenTypes::datatype_tokens);
+                        attempt_get_expected_token(tok, get_line(), 0, false);
+
+                        struct variable_info<usint16> var_info = get_variable_by_name<usint16>((cp_int8)tok.get_token_value(), (usint8)assembler_get_bit_type());
+                        printf("\n\n\tmov ax, [%s]:\n\t\t%s -> %X\n",
+                            tok.get_token_value(), tok.get_token_value(),
+                            var_info.var_data.variable_address);
+
+                        set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
+                        //attempt_get_expected_token(tok, get_line(), ']');
+
+                        exit(EXIT_FAILURE);
+                    }
+
                     set_token_types_to_expect(TokenTypes::datatype_tokens, TokenTypes::register_tokens);
                     
                     /* This has to be done otherwise, for some reason, `passembler->idata` does

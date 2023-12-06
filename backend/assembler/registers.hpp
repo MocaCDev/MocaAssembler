@@ -57,8 +57,8 @@ namespace MocaAssembler_RegisterValues
                     /* AL - Lower (rightmost) 8 bits. */
                     r_al_value = AssemblerCommon::LE_get_rightmost_byte(r_ax_value);
 
-                    printf("AX: %X\n\tAH: %X\n\tAL: %X\n",
-                        r_ax_value, r_ah_value, r_al_value);
+                    //printf("AX: %X\n\tAH: %X\n\tAL: %X\n",
+                    //    r_ax_value, r_ah_value, r_al_value);
                     break;
                 }
                 case (usint8)RegisterTokens::R_bx:
@@ -67,8 +67,8 @@ namespace MocaAssembler_RegisterValues
                     r_bh_value = AssemblerCommon::LE_get_leftmost_byte(r_bx_value);
                     r_bl_value = AssemblerCommon::LE_get_rightmost_byte(r_bx_value);
 
-                    printf("BX: %X\n\tBH: %X\n\tBL: %X\n",
-                        r_bx_value, r_bh_value, r_bl_value);
+                    //printf("BX: %X\n\tBH: %X\n\tBL: %X\n",
+                    //    r_bx_value, r_bh_value, r_bl_value);
                     break;
                 }
                 case (usint8)RegisterTokens::R_cx:
@@ -77,8 +77,8 @@ namespace MocaAssembler_RegisterValues
                     r_ch_value = AssemblerCommon::LE_get_leftmost_byte(r_cx_value);
                     r_cl_value = AssemblerCommon::LE_get_rightmost_byte(r_cx_value);
 
-                    printf("CX: %X\n\tCH: %X\n\tCL: %X\n",
-                        r_cx_value, r_ch_value, r_cl_value);
+                    //printf("CX: %X\n\tCH: %X\n\tCL: %X\n",
+                    //    r_cx_value, r_ch_value, r_cl_value);
                     break;
                 }
                 case (usint8)RegisterTokens::R_dx:
@@ -87,8 +87,8 @@ namespace MocaAssembler_RegisterValues
                     r_dh_value = AssemblerCommon::LE_get_leftmost_byte(r_dx_value);
                     r_dl_value = AssemblerCommon::LE_get_rightmost_byte(r_dx_value);
 
-                    printf("DX: %X\n\tDH: %X\n\tDL: %X\n",
-                        r_dx_value, r_dh_value, r_dl_value);
+                    //printf("DX: %X\n\tDH: %X\n\tDL: %X\n",
+                    //    r_dx_value, r_dh_value, r_dl_value);
                     break;
                 }
                 default: break;

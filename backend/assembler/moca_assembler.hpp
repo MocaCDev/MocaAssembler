@@ -210,6 +210,8 @@ namespace MocaAssembler
             assign_parent_register_value(
                 (usint8)idata->reg_id,
                 AssemblerCommon::LE_16(value));
+            
+            increment_program_counter();
         }
 
         inline void write_instruction_to_bin()
@@ -297,6 +299,9 @@ namespace MocaAssembler
 
         Assembler& return_assembler()
         {
+            this->program_counter = 0;
+            this->bin_data_index = 0;
+
             return *this;
         }
 

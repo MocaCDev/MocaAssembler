@@ -70,7 +70,8 @@ namespace MocaAssembler_Variables
         struct variable_metadata<usint32> bit32_metadata;
         std::vector<struct variable_metadata<usint32>> bit32_variable_metadat;
         uslng bit32_length;
-
+    
+    public:
         template<typename T>
             requires std::is_same<T, usint16>::value
                 || std::is_same<T, usint32>::value
@@ -110,13 +111,24 @@ namespace MocaAssembler_Variables
             switch(bit_type)
             {
                 case 0x0: {
-                    /*for(usint32 i = 0; i < bit16_length; i++)
+                    for(usint32 i = 0; i < bit16_length; i++)
                     {
-                        if(strcmp((cp_int8)bit16_variable_metadata[i].variable_name, variable_name) == 0) return bit16_variable_metadata[i];
+                        if(strcmp((cp_int8)bit16_variable_metadata[i].variable_name, variable_name) == 0)
+                        {
+                            var_info.var_data = (struct variable_metadata<T>)bit16_variable_metadata[i];
+                            return var_info;
+                        }
+                        
                         if(bit16_variable_metadata[i].subset_variables_count > 0)
                             for(usint32 x = 0; x < bit16_variable_metadata[i].subset_variables_count; x++)
-                                if(strcmp((cp_int8)bit16_variable_metadata[i].subset_variables[x].subset_variable_name, variable_name) == 0) return bit16_variable_metadata[i];
-                    }*/
+                                if(strcmp((cp_int8)bit16_variable_metadata[i].subset_variables[x].subset_variable_name, variable_name) == 0)
+                                {
+                                    var_info.var_data = bit16_variable_metadata[i];
+                                    var_info.is_subset_variable = true;
+                                    var_info.subset_variable.sub_var_data = bit16_variable_metadata[i].subset_variables[x];
+                                    return var_info;
+                                }
+                    }
                     break;
                 }
                 case 0x1: {
@@ -203,7 +215,8 @@ namespace MocaAssembler_Variables
                 default: break;
             }
         }
-
+    
+    protected:
         template<typename T>
             requires std::is_same<T, usint8>::value
                 || std::is_same<T, p_usint8>::value

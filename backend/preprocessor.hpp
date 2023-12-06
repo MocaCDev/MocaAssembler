@@ -94,9 +94,22 @@ namespace MocaAssembler_PreProcessor
                     attempt_get_expected_token(tok, get_line(), ',');
                     set_token_types_to_expect(TokenTypes::datatype_tokens, TokenTypes::register_tokens);
 
+                    if(seek_and_return(1) == '[')
+                    {
+                        lexer_advance();
+                        increment_program_counter();
+                        
+                        while(get_current_char() != ']')
+                            lexer_advance();
+
+                        lexer_advance();
+                        goto end;
+                    }
+
                     attempt_get_expected_token(tok, get_line());
                     increment_program_counter(); /* value */
 
+                    end:
                     counters.push_back(get_program_counter());
 
                     break;
@@ -127,12 +140,14 @@ namespace MocaAssembler_PreProcessor
                 if(get_current_char() == '\n')
                 {
                     while(get_current_char() == '\n') lexer_advance();
+                    
 
                     if(get_current_char() == '!' || (get_current_char() == ' ' && seek_and_return(4) == '.'))
                     {
                         assign_mem_address();
 
-                        while(seek_and_return(1) != '\n' && seek_and_return(1) != '\0')
+                        while((seek_and_return(1) != '\n' && seek_and_return(1) != '\0') &&
+                              (get_current_char() != '\n' && get_current_char() != '\0'))
                             lexer_advance();
 
                         lexer_advance();
@@ -242,11 +257,10 @@ namespace MocaAssembler_PreProcessor
                  * */
                 if(seek_and_return(1) == '\n' || get_current_char() == '\n')
                 {
-                    usint8 i = 0;
-                    while(!is_ascii(seek_and_return(i)) && !(seek_and_return(i) == '\0'))
-                        i++;
+                    while(get_current_char() == '\n')
+                          lexer_advance();
 
-                    if(is_ascii(seek_and_return(i)))
+                    if(is_ascii(get_current_char()))
                         has_code = true;
                 }
 

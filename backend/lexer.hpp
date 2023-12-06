@@ -149,8 +149,15 @@ namespace MocaAssembler_Lexer
 
                 if(seek_and_test(1, '\n'))
                 {
-                    keyword[i] = current_char;
-                    i++;
+                    if(allow_special && (current_char == '_' || is_number(current_char)))//is_ascii(current_char))
+                    {
+                        add:
+                        keyword[i] = current_char;
+                        i++;
+                    } else
+                        if(is_ascii(current_char))
+                            goto add;
+
                     lexer_advance();
                     break;
                 }
@@ -423,8 +430,9 @@ namespace MocaAssembler_Lexer
             {
                 if(!var_needs_expl)
                 {
-                    lexer_advance();
-                    keyword = get_keyword();
+                    if(!is_ascii(current_char))
+                        lexer_advance();
+                    keyword = get_keyword(true);
 
                     tok.assign_token_data(keyword, (usint8)VariableDeclaration::VarDec, TokenTypes::variable_declaration);
                     return tok;
