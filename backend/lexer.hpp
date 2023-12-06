@@ -249,7 +249,7 @@ namespace MocaAssembler_Lexer
             : assembly_data(nullptr), assembly_filename(nullptr)
         {
             assembly_filename = new int8[strlen(filename) + 1]; /* +1 to have a null-ending (\0) char pointer. */
-            memcpy(assembly_filename, filename, strlen(filename));
+            std::memcpy(assembly_filename, filename, strlen(filename));
 
             FILE *asm_file = fopen(filename, "rb");
             moca_assembler_assert(

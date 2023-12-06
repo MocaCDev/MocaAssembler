@@ -10,7 +10,7 @@ int main(int args, char *argv[])
 		EXIT_FAILURE, 
 		"Expected assembly file as input.\n")
 	
-	asm_run assembler_run(argv[1]);
+	 asm_run assembler_run(argv[1]);
 
 	return 0;
 }

@@ -1,10 +1,10 @@
 use16
 org 0x7C00
 
-!test db 0x0
+!test dw 0x0
 
 mov ax, 0x6FF8
 
-mov ax, [test2]
+mov dx, [test2]
 
-!test2 db 0x0
+!test2 dd 0x0

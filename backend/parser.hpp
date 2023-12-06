@@ -94,8 +94,15 @@ namespace MocaAssembler_Parser
 
                     set_token_types_to_expect(TokenTypes::register_tokens, TokenTypes::general_tokens);
 
-                    /* TODO: Call to assembler to add `mov` byte. */
                     attempt_get_expected_token(tok, get_line());
+                    
+                    /* Temporary.
+                     *
+                     * TODO: Remove.
+                     * */
+                    usint8 reg_name[4];
+                    std::memcpy(reg_name, tok.get_token_value(), strlen((cp_int8)tok.get_token_value()));
+
                     passembler->assembler_set_lval(tok.get_token_id());
 
                     set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
@@ -111,9 +118,14 @@ namespace MocaAssembler_Parser
                         attempt_get_expected_token(tok, get_line(), 0, false);
 
                         struct variable_info<usint16> var_info = get_variable_by_name<usint16>((cp_int8)tok.get_token_value(), (usint8)assembler_get_bit_type());
-                        printf("\n\n\tmov ax, [%s]:\n\t\t%s -> %X\n",
+                        printf("\n\n\tmov %s, [%s]:\n\t\t%s -> %X\n",
+                            reg_name,
                             tok.get_token_value(), tok.get_token_value(),
                             var_info.var_data.variable_address);
+                        
+                        printf("\n\t`%s` is a %s size variable.\n",
+                            tok.get_token_value(),
+                            get_variable_size_name(get_variable_size<usint16>(var_info.var_data.variable_address, (usint8)assembler_get_bit_type())));
 
                         set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
                         attempt_get_expected_token(tok, get_line(), ']');
@@ -173,7 +185,7 @@ namespace MocaAssembler_Parser
 
             /* Copy over the user-define variable name to save it for adding it to the "variable stack". */
             usint8 var_name[strlen((cp_int8)tok.get_token_value())];
-            strcpy((p_int8)var_name, (cp_int8)tok.get_token_value());
+            std::strcpy((p_int8)var_name, (cp_int8)tok.get_token_value());
 
             /* Following the variable name should be the variable type (`db`, `dw`, `dd`). */
             tok = try_get_token<DataTypeTokens>();

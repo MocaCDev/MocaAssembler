@@ -82,13 +82,11 @@ namespace MocaAssembler_Variables
                 case 0x0: {
                     /* Check `bit16_variable_metadata`. */
                     for(usint32 i = 0; i < bit16_length; i++)
-                    {
                         if(bit16_variable_metadata[i].variable_address == var_address) return (VariableSize)bit16_variable_metadata[i].variable_size;
                         else
                             if(bit16_variable_metadata[i].subset_variables_count > 0)
                                 for(usint32 x = 0; x < bit16_variable_metadata[i].subset_variables_count; x++)
                                     if(bit16_variable_metadata[i].subset_variables[x].subset_variable_address == var_address) return (VariableSize)bit16_variable_metadata[i].subset_variables[x].subset_variable_size;
-                    }
                     break;
                 }
                 case 0x1: {
@@ -99,6 +97,23 @@ namespace MocaAssembler_Variables
             }
 
             return VariableSize::VS_byte;
+        }
+
+        /* Temporary. For debugging.
+         * 
+         * TODO: Remove.
+         * */
+        inline cp_int8 get_variable_size_name(VariableSize var_size)
+        {
+            switch(var_size)
+            {
+                case VariableSize::VS_byte: return (cp_int8)"Byte";break;
+                case VariableSize::VS_word: return (cp_int8)"Word";break;
+                case VariableSize::VS_dword: return (cp_int8)"DWord";break;
+                default: break;
+            }
+
+            return (cp_int8)"Unknown";
         }
 
         template<typename T>
@@ -139,7 +154,8 @@ namespace MocaAssembler_Variables
 
             moca_assembler_error(
                 UnknownError,
-                "[Unknown Error]\n\tAn unknown error ocurred.\n")
+                "[Variable Not Found]\n\tThe variable `%s` does not exist, or has not been declared.\n",
+                variable_name)
         }
 
         template<typename T>
@@ -164,14 +180,6 @@ namespace MocaAssembler_Variables
                                     break;
                                 }
                     }
-                    /*for(usint32 i = 0; i < bit16_length; i++)
-                    {
-                        printf("%X", bit16_variable_metadata[i].variable_address);
-                        if(bit16_variable_metadata[i].variable_address == address) return bit16_variable_metadata[i];
-                        if(bit16_variable_metadata[i].subset_variables_count > 0)
-                            for(usint32 x = 0; x < bit16_variable_metadata[i].subset_variables_count; x++)
-                                if(bit16_variable_metadata[i].subset_variables[x].subset_variable_address == address) return bit16_variable_metadata[i];
-                    }*/
                     return var_info;
                 }
                 case 0x1: {
@@ -226,7 +234,7 @@ namespace MocaAssembler_Variables
         {
             const auto add_to_bit16_vector = [this, &variable_name, &variable_datatype]()
             {
-                strcpy((p_int8)bit16_metadata.variable_name, (cp_int8)variable_name);
+                std::strcpy((p_int8)bit16_metadata.variable_name, (cp_int8)variable_name);
                 bit16_metadata.variable_address = bit16_length + bit32_length;
                 bit16_metadata.variable_size = (usint8)variable_datatype;
 
@@ -245,13 +253,6 @@ namespace MocaAssembler_Variables
                 bit16_length++;
             };
 
-            /* The vector of which is used, that being `bit16_variable_metadata` or `bit32_variable_metadata`
-             * is dependable on the type of assembly code being assembled (16-bit or 32-bit assembly code).
-             *
-             * If it's 16-bit assembly code (`use16`), then the memory addresses are 2-bytes wide, else (`use32`) memory addresses are 4-bytes wide.
-             *
-             * TODO: Add support for checking the type of assembly code that is being assembled.
-             * */
             switch(variable_datatype)
             {
                 case (usint8)VariableSize::VS_byte: {
@@ -293,7 +294,7 @@ namespace MocaAssembler_Variables
             struct subset_variable_metadata<usint16> svar_metadata;
             
             /* Copy over the variable name and explicitly add a null value to the end. */
-            memcpy(svar_metadata.subset_variable_name, variable_name, strlen((cp_int8)variable_name));
+            std::memcpy(svar_metadata.subset_variable_name, variable_name, strlen((cp_int8)variable_name));
             svar_metadata.subset_variable_name[strlen((cp_int8)variable_name)] = '\0';
 
             svar_metadata.subset_variable_address = bit16_length + bit32_length;
@@ -307,7 +308,7 @@ namespace MocaAssembler_Variables
             bit16_variable_metadata[bit16_length-1].subset_variables.push_back(svar_metadata);
 
             /* Zero out the memory. */
-                memset(svar_metadata.subset_variable_name, 0, strlen((cp_int8)svar_metadata.subset_variable_name));
+            memset(svar_metadata.subset_variable_name, 0, strlen((cp_int8)svar_metadata.subset_variable_name));
         }
 
         usint32 last_program_counter = 0;

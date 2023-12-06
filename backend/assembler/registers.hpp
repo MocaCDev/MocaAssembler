@@ -36,9 +36,54 @@ namespace MocaAssembler_RegisterValues
 
         }
 
+        RegisterValues& get_register_values_obj()
+        {
+            return *this;
+        }
+
+        /* AX, AH, AL. TODO: Probably remove this. */
         inline constexpr usint16 get_r_ax_value() { return r_ax_value; }
         inline constexpr usint8 get_r_ah_value() { return r_ah_value; }
         inline constexpr usint8 get_r_al_value() { return r_al_value; }
+
+        /* BX, BH, BL. TODO: Probably remove this. */
+        inline constexpr usint16 get_r_bx_value() { return r_bx_value; }
+        inline constexpr usint8 get_r_bh_value() { return r_bh_value; }
+        inline constexpr usint8 get_r_bl_value() { return r_bl_value; }
+
+        /* CX, CH, CL. TODO: Probably remove this. */
+        inline constexpr usint16 get_r_cx_value() { return r_cx_value; }
+        inline constexpr usint8 get_r_ch_value() { return r_ch_value; }
+        inline constexpr usint8 get_r_cl_value() { return r_cl_value; }
+
+        /* DX, DH, DL. TODO: Probably remove this. */
+        inline constexpr usint16 get_r_dx_value() { return r_dx_value; }
+        inline constexpr usint8 get_r_dh_value() { return r_dh_value; }
+        inline constexpr usint8 get_r_dl_value() { return r_dl_value; }
+
+        /* For debugging.
+         *
+         * TODO: Remove. */
+        friend std::ostream& operator<<(std::ostream& ostr, RegisterValues& obj)
+        {
+            printf("\n\nREGISTER INFORMATION:\n\tAX: %X\n\tAH: %X\n\tAL: %X\n",
+                obj.get_r_ax_value(), obj.get_r_ah_value(),
+                obj.get_r_al_value());
+            
+            printf("\n\tBX: %X\n\tBH: %X\n\tBL: %X\n",
+                obj.get_r_bx_value(), obj.get_r_bh_value(),
+                obj.get_r_bl_value());
+            
+            printf("\n\tCX: %X\n\tCH: %X\n\tCL: %X\n",
+                obj.get_r_cx_value(), obj.get_r_ch_value(),
+                obj.get_r_cl_value());
+            
+            printf("\n\tDX: %X\n\tDH: %X\n\tDL: %X\n",
+                obj.get_r_dx_value(), obj.get_r_dh_value(),
+                obj.get_r_dl_value());
+
+            return ostr;
+        }
 
         /* Parent registers:
          *      ax, bx, cx, dx.

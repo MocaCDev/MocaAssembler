@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdlib.h> /* exit(), EXIT_FAILURE, EXIT_SUCCESS. */
 #include <string.h>
-#include <string>
+#include <cstring>
 #include <memory>
 #include <vector>
 
@@ -95,6 +95,7 @@ typedef const unsigned long long*	cp_uslng_lng;
 #define InvalidDataTypeToken	0x0011
 #define UnexpectedEOF			0x0012
 #define UnexpectedNewline		0x0013
+#define VariableNotFound		0x0014
 #define UnknownError			0xFFFF
 
 #define moca_assembler_error(exit_code, msg, ...)		\
