@@ -276,7 +276,7 @@ namespace MocaAssembler_PreProcessor
              * is an `org` directive on the second.
              * */
             token tok = try_get_token<GeneralTokens>(0, true, true); /* override = true; we do not want to check for variable declarations. */
-
+            
             const auto check_line = [this, &tok](uslng increment = 0, uslng line)
             {
                 moca_assembler_assert(

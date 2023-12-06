@@ -91,6 +91,8 @@ typedef const unsigned long long*	cp_uslng_lng;
 #define AllocationError			0x0008
 #define InvalidLineForDirective 0x0009
 #define OverflowError			0x000A
+#define InvalidRegID			0x0010
+#define InvalidDataTypeToken	0x0011
 #define UnknownError			0xFFFF
 
 #define moca_assembler_error(exit_code, msg, ...)		\

@@ -1,0 +1,1 @@
+mov ax, 0x6FF8

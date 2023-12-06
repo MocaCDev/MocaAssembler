@@ -14,6 +14,7 @@ namespace MocaAssembler_Parser
         usint32 variable_id = 0;
         std::vector<uslng> p_lines_to_ignore{0};
         bool has_code = false;
+        Assembler *passembler;
 
         /* Temporary.
          * TODO: Remove. */
@@ -71,12 +72,12 @@ namespace MocaAssembler_Parser
             return false;
         }
 
-        constexpr void parse_instruction(token& tok)
+        void parse_instruction(token& tok)
         {
             switch(tok.get_token_id())
             {
                 case (usint8)InstructionTokens::I_mov: {
-                    assembler_init_new_instruction(instructions::mov);
+                    passembler->assembler_init_new_instruction(instructions::mov);
 
                     if(seek_and_test(1, '['))
                     {
@@ -94,16 +95,51 @@ namespace MocaAssembler_Parser
                     set_token_types_to_expect(TokenTypes::register_tokens, TokenTypes::general_tokens);
 
                     /* TODO: Call to assembler to add `mov` byte. */
-                    increment_program_counter(); /* `mov` */
                     attempt_get_expected_token(tok, get_line());
+                    passembler->assembler_set_lval(tok.get_token_id());
+
                     set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
                     
-                    increment_program_counter(); /* register */
                     attempt_get_expected_token(tok, get_line(), ',');
                     set_token_types_to_expect(TokenTypes::datatype_tokens, TokenTypes::register_tokens);
+                    
+                    /* This has to be done otherwise, for some reason, `passembler->idata` does
+                     * not keep its values.
+                     * */
+                    struct instruction_data idata_copied = *passembler->idata;
+                    delete passembler->idata;
 
                     attempt_get_expected_token(tok, get_line());
-                    increment_program_counter(); /* value */
+
+                    if(tok.get_token_type_id() == TokenTypes::datatype_tokens)
+                    {
+                        std::string value{(cp_int8)tok.get_token_value()};
+                        switch(tok.get_token_id())
+                        {
+                            case (usint8)DataTypeTokens::DT_hex:
+                            {
+                                passembler->assembler_set_rval_imm(
+                                    idata_copied,
+                                    std::stol(value, nullptr, 0x10),
+                                    get_line(),
+                                    get_filename());
+
+                                break;
+                            }
+                            case (usint8)DataTypeTokens::DT_dec:
+                            {
+                                std::cout << "Dec" << std::endl;
+                                break;
+                            }
+                            default: moca_assembler_error(InvalidDataTypeToken, "Invalid Data Type Token.\n")
+                        }
+
+                        passembler->write_instruction_to_bin();
+
+                        break;
+                    }
+
+                    /* Register Token. */
                     
                     break;
                 }
@@ -195,8 +231,8 @@ namespace MocaAssembler_Parser
 
         void parser_next(token& tok)
         {
-            while(tok.get_token_id() != (usint8)GeneralTokens::GK_eof)
-            {   
+            while(tok.get_token_id() != (usint8)GeneralTokens::GK_eof && get_line() != get_max_line())
+            {
                 if((tok = try_get_token<InstructionTokens>()).get_token_value() != nullptr)
                 {
                     parse_instruction(tok);
@@ -227,11 +263,13 @@ namespace MocaAssembler_Parser
                     }
                 }
             }
+
+            write_to_binary();
         }
 
     public:
         parser(cp_int8 filename)
-            : Preprocessor(filename)
+            : Preprocessor(filename), passembler(nullptr)
         {
             token tok;
             while((tok = try_get_token<VariableDeclaration>()).get_token_value() != nullptr)
@@ -248,8 +286,8 @@ namespace MocaAssembler_Parser
             
             start_preprocessor(p_lines_to_ignore, tok, has_code);
 
-            if(has_code)
-                parser_next(tok);
+            passembler = &return_assembler();
+            parser_next(tok);
         }
 
         ~parser() = default;
