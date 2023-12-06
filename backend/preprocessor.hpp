@@ -98,9 +98,25 @@ namespace MocaAssembler_PreProcessor
                     {
                         lexer_advance();
                         increment_program_counter();
+
+                        uslng last_line = get_line();
                         
                         while(get_current_char() != ']')
+                        {
                             lexer_advance();
+
+                            moca_assembler_assert(
+                                get_current_char() != '\n',
+                                UnexpectedNewline,
+                                "[Unexpected Newline]\n\tLine %ld in `%s` is expecting `]`, found newline instead.\n",
+                                last_line, get_filename())
+                            
+                            moca_assembler_assert(
+                                get_current_char() != '\0',
+                                UnexpectedEOF,
+                                "[Unexpected EOF]\n\tLine %ld in `%s` is expecting `]`, found EOF instead.\n",
+                                last_line, get_filename())
+                        }
 
                         lexer_advance();
                         goto end;

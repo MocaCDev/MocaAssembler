@@ -116,7 +116,7 @@ namespace MocaAssembler_Parser
                             var_info.var_data.variable_address);
 
                         set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
-                        //attempt_get_expected_token(tok, get_line(), ']');
+                        attempt_get_expected_token(tok, get_line(), ']');
 
                         exit(EXIT_FAILURE);
                     }

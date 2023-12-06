@@ -93,6 +93,8 @@ typedef const unsigned long long*	cp_uslng_lng;
 #define OverflowError			0x000A
 #define InvalidRegID			0x0010
 #define InvalidDataTypeToken	0x0011
+#define UnexpectedEOF			0x0012
+#define UnexpectedNewline		0x0013
 #define UnknownError			0xFFFF
 
 #define moca_assembler_error(exit_code, msg, ...)		\
