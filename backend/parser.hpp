@@ -130,6 +130,9 @@ namespace MocaAssembler_Parser
                         set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
                         attempt_get_expected_token(tok, get_line(), ']');
 
+                        /* For the time being. */
+                        write_to_binary();
+
                         exit(EXIT_FAILURE);
                     }
 
@@ -259,6 +262,15 @@ namespace MocaAssembler_Parser
             }
 
             p_lines_to_ignore.push_back(get_line());
+
+            /* Weird, but we have to check for comments in the parser.
+             * That is just how things came to be with how the lexer is setup.
+             * */
+            while(get_current_char() == '\n')
+                lexer_advance();
+                
+            if(get_current_char() == ';')
+                tok = try_get_token<GrammarTokens>();
         }
 
         void parser_next(token& tok)
@@ -296,6 +308,8 @@ namespace MocaAssembler_Parser
                 }
             }
 
+
+
             write_to_binary();
         }
 
@@ -304,6 +318,7 @@ namespace MocaAssembler_Parser
             : Preprocessor(filename), passembler(nullptr)
         {
             token tok;
+
             while((tok = try_get_token<VariableDeclaration>()).get_token_value() != nullptr)
             {
                 /* Although it seems as though this is not needed, it very much is.

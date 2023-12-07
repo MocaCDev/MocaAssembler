@@ -1,10 +1,12 @@
 use16
 org 0x7C00
 
-!test dw 0x0
+;
+; Test comment
+;
 
 mov ax, 0x6FF8
-
-mov dx, [test2]
+mov ax, 0xF86F
 
 !test2 dd 0x0
+!test3 db 0x0

@@ -73,24 +73,17 @@ namespace MocaAssembler
     private:
         uslng program_counter = 0;
         uslng origin = 0;
-        p_usint8 bin_data;
+        FILE *bin_data;
         uslng bin_data_index = 0;
         usint8 opcode = 0;
         BitType bit_type;
 
-        inline constexpr void write_bin(usint8 data)
+        /* I really don't need this function, but it does look better
+         * code-wise instead of seeing a bunch of `fwrite` function calls.
+         * */
+        inline void write_bin(usint8 data)
         {
-            bin_data[bin_data_index] = data;
-            reallocate_bin_data();
-        }
-
-        inline constexpr void reallocate_bin_data()
-        {
-            bin_data_index++;
-            bin_data = static_cast<p_usint8>(realloc(
-                bin_data,
-                (bin_data_index + 1) * sizeof(*bin_data)
-            ));
+            fwrite(&data, 1, sizeof(usint8), bin_data);
         }
 
     public:
@@ -230,10 +223,10 @@ namespace MocaAssembler
                      * written first and the most significant (leftmost 8 bits) get written last.
                      * 
                      * */
-                    write_bin(get_r_al_value());
+                    write_bin(AssemblerCommon::LE_get_rightmost_byte(get_r_ax_value()));
 
                     /* Write the value stored in `ah`. */
-                    write_bin(get_r_ah_value());
+                    write_bin(AssemblerCommon::LE_get_leftmost_byte(get_r_ax_value()));
 
                     break;
                 }
@@ -241,12 +234,15 @@ namespace MocaAssembler
             }
         }
 
+        /* Same concept as `write_bin`. This is not needed,
+         * but it's better to read.
+         *
+         * Also, it is probably needed due to `bin_data` being protected
+         * in this context.
+         * */
         inline void write_to_binary()
         {
-            FILE *f = fopen("test.bin", "wb");
-
-            fwrite(bin_data, bin_data_index, sizeof(*bin_data), f);
-            fclose(f);
+            fclose(bin_data);
         }
 
         template<typename T>
@@ -275,7 +271,7 @@ namespace MocaAssembler
               bit_type(BitType::NoneSet), idata(nullptr),
               RegisterValues()
         {
-            bin_data = static_cast<p_usint8>(calloc(1, sizeof(*bin_data)));
+            bin_data = fopen("test.bin", "wb");
 
             moca_assembler_assert(
                 bin_data,
@@ -288,7 +284,7 @@ namespace MocaAssembler
             : ElfGenerator(ELF_CLASS_TYPE, ENDIAN_TYPE), Variables(),
               bit_type(BitType::NoneSet), idata(nullptr)
         {
-            bin_data = static_cast<p_usint8>(calloc(1, sizeof(*bin_data)));
+            bin_data = fopen("test.bin", "wb");
 
             moca_assembler_assert(
                 bin_data,

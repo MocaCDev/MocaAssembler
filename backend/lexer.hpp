@@ -390,6 +390,26 @@ namespace MocaAssembler_Lexer
                 has_been_checked = true;
             }
 
+            const auto skip_comment = [this, &tok]()
+            {
+                skip_comment:
+                while(current_char != '\n') lexer_advance();
+
+                while(current_char == '\n') lexer_advance();
+
+                if(current_char == ';')
+                    goto skip_comment;
+
+                tok.reset_token_data();
+            };
+
+            if(current_char == ';')
+            {
+                skip_comment();
+
+                return tok;
+            }
+
             /* So long as we are no longer "parsing" for variable declarations,
              * skip any plausible variable declaration that may be dwelling on the
              * current line.
@@ -417,17 +437,9 @@ namespace MocaAssembler_Lexer
                 }
             }
 
-            if(current_char == ';')
-            {
-                skip_comment:
-                while(current_char != '\n') lexer_advance();
-                lexer_advance();
-
-                if(current_char == ';') goto skip_comment;
-            }
-
             if(typeid(T) == typeid(VariableDeclaration))
             {
+                var_dec:
                 if(!var_needs_expl)
                 {
                     if(!is_ascii(current_char))
@@ -441,8 +453,17 @@ namespace MocaAssembler_Lexer
                 if(current_char != '!' && current_char != '.')
                 {
                     redo:
-                    while(current_char != '\n' && !(current_char == '\0') && !(current_char == '!')) lexer_advance();
-                    
+                    while(current_char != '\n' && !(current_char == '\0') && !(current_char == '!') && !(current_char == ';')) lexer_advance();
+
+                    /* Skip comments. */
+                    if(current_char == ';')
+                    {
+                        skip_comment();
+
+                        if(current_char == '!' || seek_and_return(1) == '!')
+                            goto get;
+                    }
+
                     if(current_char == '\0')
                     {
                         reset_lexer_data();
@@ -450,6 +471,9 @@ namespace MocaAssembler_Lexer
                         return tok;
                     }
 
+                    /* Although it seems useless, this function call is very much needed
+                     * here else the program goes into a infinite loop.
+                     * */
                     lexer_advance();
 
                     if(current_char == '!' || current_char == '.') goto get;

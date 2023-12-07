@@ -99,6 +99,10 @@ namespace MocaAssembler_PreProcessor
                         lexer_advance();
                         increment_program_counter();
 
+                        /* TODO: Decipher whether or not it is a memory address in between
+                         *       the square brackets are a variable.
+                         *       Thereafter it being a variable, make sure it exists.
+                         * */
                         uslng last_line = get_line();
                         
                         while(get_current_char() != ']')
@@ -155,11 +159,28 @@ namespace MocaAssembler_PreProcessor
 
                 if(get_current_char() == '\n')
                 {
+                    top:
                     while(get_current_char() == '\n') lexer_advance();
-                    
+
+                    /* GrammarTokens has nothing to do with it.
+                     *
+                     * This call to `try_get_token` is simply being invoked to skip over the
+                     * comment.
+                     * */
+                    if(get_current_char() == ';')
+                    {
+                        tok = try_get_token<GrammarTokens>();
+
+                        if(get_current_char() == '!')
+                            goto assign;
+
+                        /* Should this be: `goto top`? */
+                        continue;
+                    }
 
                     if(get_current_char() == '!' || (get_current_char() == ' ' && seek_and_return(4) == '.'))
                     {
+                        assign:
                         assign_mem_address();
 
                         while((seek_and_return(1) != '\n' && seek_and_return(1) != '\0') &&
@@ -346,6 +367,8 @@ namespace MocaAssembler_PreProcessor
                     /* Get the token value and pass a conversion to `set_origin`. */
                     std::string s{(cp_int8)tok.get_token_value()};
                     set_origin(std::stoi(s, nullptr, 0x10));
+
+                    reset_lexer_data();
 
                     return;
                     break;
