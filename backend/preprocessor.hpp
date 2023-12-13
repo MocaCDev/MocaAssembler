@@ -44,10 +44,13 @@ namespace MocaAssembler_PreProcessor
                 case (usint8)InstructionTokens::I_mov: {
                     if(seek_and_test(1, '['))
                     {
-                        set_token_types_to_expect(TokenTypes::variable_declaration, TokenTypes::Empty);
+                        set_token_types_to_expect(TokenTypes::datatype_tokens, TokenTypes::variable_declaration);
 
                         /* imm[8,16,32] */
-                        attempt_get_expected_token(tok, get_line(), 0, false);
+                        attempt_get_expected_token(tok, get_line(), 0, false, true, '[');
+                        printf("%s", tok.get_token_value());
+                        ///std::string value{(cp_int8)tok.get_token_value()};
+                        //printf("%X", std::stol(value, nullptr, 0x10));
 
                         const auto perform_check = [this, &tok](const cp_int8 array[], uslng array_size, cp_int8 err_msg)
                         {
@@ -247,7 +250,7 @@ namespace MocaAssembler_PreProcessor
             token_type_to_expect[1] = t2;
         }
 
-        void attempt_get_expected_token(token& tok, uslng line, usint8 expected = 0, bool var_needs_expl = true)
+        void attempt_get_expected_token(token& tok, uslng line, usint8 expected = 0, bool var_needs_expl = true, bool skip_a_val = false, usint8 val = 0)
         {
             for(usint8 i = 0; i < 2; i++)
             {
@@ -255,14 +258,15 @@ namespace MocaAssembler_PreProcessor
 
                 switch(token_type_to_expect[i])
                 {
-                    case TokenTypes::instruction_tokens: tok = try_get_token<InstructionTokens>();return;
-                    case TokenTypes::register_tokens: tok = try_get_token<RegisterTokens>();return;
-                    case TokenTypes::datatype_tokens: tok = try_get_token<DataTypeTokens>();return;
-                    case TokenTypes::general_tokens: tok = try_get_token<GeneralTokens>();return;
-                    case TokenTypes::grammar_tokens: tok = try_get_token<GrammarTokens>(expected);return;
-                    case TokenTypes::variable_declaration: tok = try_get_token<VariableDeclaration>(expected, var_needs_expl);return;
+                    case TokenTypes::instruction_tokens: tok = try_get_token<InstructionTokens>();break;
+                    case TokenTypes::register_tokens: tok = try_get_token<RegisterTokens>();break;
+                    case TokenTypes::datatype_tokens: tok = try_get_token<DataTypeTokens>(expected, var_needs_expl, false, skip_a_val, val);break;return;
+                    case TokenTypes::general_tokens: tok = try_get_token<GeneralTokens>();break;
+                    case TokenTypes::grammar_tokens: tok = try_get_token<GrammarTokens>(expected);break;
+                    case TokenTypes::variable_declaration: tok = try_get_token<VariableDeclaration>(expected, var_needs_expl);break;
                     default: break;
                 }
+                if(tok.get_token_value() != nullptr) return;
             }
 
             if(tok.get_token_value() == nullptr)
@@ -312,7 +316,7 @@ namespace MocaAssembler_PreProcessor
             /* Perform the according checks. */
             preprocessor_checks(tok, p_lines_to_ignore, has_code);
 
-            see_names((usint8)assembler_get_bit_type());
+            //see_names((usint8)assembler_get_bit_type());
 
             reset_lexer_data();
             reset_assembler_data();
@@ -378,6 +382,8 @@ namespace MocaAssembler_PreProcessor
 
             if((tok = try_get_token<GeneralTokens>(0, true, true)).get_token_id() == (usint8)GeneralTokens::GK_org)
                 goto set_origin;
+
+            reset_lexer_data();
         }
 
         ~Preprocessor() = default;

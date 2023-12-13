@@ -286,7 +286,7 @@ namespace MocaAssembler_Lexer
                 || std::is_same<T, GeneralTokens>::value
                 || std::is_same<T, GrammarTokens>::value
                 || std::is_same<T, VariableDeclaration>::value
-        const token try_get_token(usint8 expected = 0, bool var_needs_expl = true, bool override = false)
+        const token try_get_token(usint8 expected = 0, bool var_needs_expl = true, bool override = false, bool skip_a_val = false, usint8 val = 0)
         {
             token tok;
             p_usint8 keyword;
@@ -393,7 +393,7 @@ namespace MocaAssembler_Lexer
             const auto skip_comment = [this, &tok]()
             {
                 skip_comment:
-                while(current_char != '\n') lexer_advance();
+                while(current_char != '\n' && current_char != '\0') lexer_advance();
 
                 while(current_char == '\n') lexer_advance();
 
@@ -406,6 +406,9 @@ namespace MocaAssembler_Lexer
             if(current_char == ';')
             {
                 skip_comment();
+
+                if(current_char == '\0')
+                    goto teof;
 
                 return tok;
             }
@@ -525,6 +528,10 @@ namespace MocaAssembler_Lexer
             
             if(typeid(T) == typeid(DataTypeTokens))
             {
+                /* TODO: Figure out if this will be needed anywhere else. */
+                if(skip_a_val && val == current_char)
+                    lexer_advance();
+
                 /* Attempt to get a data type token (`db`, `dw`, `dd`). */
                 keyword = get_keyword();
 
@@ -532,7 +539,7 @@ namespace MocaAssembler_Lexer
                     reinterpret_cast<cp_int8>(keyword), data_type_token_values, 
                     sizeof(data_type_token_values)/sizeof(data_type_token_values[0]), 
                     tok, TokenTypes::datatype_tokens, 0x3);
-
+                
                 attempt_go_back(keyword);
 
                 if(keyword == nullptr && (is_number(current_char) || is_hex(current_char)))

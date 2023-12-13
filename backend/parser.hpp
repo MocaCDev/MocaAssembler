@@ -77,13 +77,15 @@ namespace MocaAssembler_Parser
             switch(tok.get_token_id())
             {
                 case (usint8)InstructionTokens::I_mov: {
-                    passembler->assembler_init_new_instruction(instructions::mov);
+                    //passembler->assembler_init_new_instruction(instructions::mov);
 
                     if(seek_and_test(1, '['))
                     {
-                        set_token_types_to_expect(TokenTypes::variable_declaration, TokenTypes::Empty);
+                        set_token_types_to_expect(TokenTypes::variable_declaration, TokenTypes::datatype_tokens);
 
                         attempt_get_expected_token(tok, get_line(), 0, false);
+                        printf("%s!.", tok.get_token_value());
+                        //struct mov_instruction_data<mem_operands> id;
 
                         /* Debug.
                          * TODO: Finish the code that is in accordance to a mov instruction working
@@ -103,7 +105,7 @@ namespace MocaAssembler_Parser
                     usint8 reg_name[4];
                     std::memcpy(reg_name, tok.get_token_value(), strlen((cp_int8)tok.get_token_value()));
 
-                    passembler->assembler_set_lval(tok.get_token_id());
+                    //passembler->assembler_set_lval(tok.get_token_id());
 
                     set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
                     
@@ -331,7 +333,7 @@ namespace MocaAssembler_Parser
                 parse_variable_declaration(tok);
             }
             
-            start_preprocessor(p_lines_to_ignore, tok, has_code);
+            start_preprocessor(p_lines_to_ignore, tok, true);//has_code);
 
             passembler = &return_assembler();
             parser_next(tok);

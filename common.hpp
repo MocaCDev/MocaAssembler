@@ -6,6 +6,7 @@
 #include <cstring>
 #include <memory>
 #include <vector>
+#include <utility>
 
 #ifdef __cplusplus
 extern "C"

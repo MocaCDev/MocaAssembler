@@ -140,6 +140,25 @@ namespace MocaAssembler_RegisterValues
             }
         }
 
+        std::pair<usint8, usint8> get_parent_value(usint8 register_id)
+        {
+            std::pair<usint8, usint8> value;
+
+            switch(register_id)
+            {
+                case 0x06: return std::pair<usint8, usint8>(get_r_al_value(), get_r_ah_value());
+                case 0x09: return std::pair<usint8, usint8>(get_r_bl_value(), get_r_bh_value());
+                case 0x0C: return std::pair<usint8, usint8>(get_r_cl_value(), get_r_ch_value());
+                case 0x0F: return std::pair<usint8, usint8>(get_r_dl_value(), get_r_dh_value());
+                default: break;
+            }
+
+            moca_assembler_error(
+                UnknownError,
+                "[Unknown Error]\n\tAn unknown error arose in the assembler. Try re-running the program.\n"
+            )
+        }
+
         ~RegisterValues() = default;
     };
 }

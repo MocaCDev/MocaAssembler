@@ -50,6 +50,48 @@ namespace MocaAssembler
         mov
     };
 
+    template<typename LVAL>
+        requires (std::is_same<LVAL, register_operands>::value
+            || std::is_same<LVAL, mem_operands>::value)
+    struct mov_instruction_data
+    {
+        usint8          lval_type; /* 0x0 = register_operands, 0x1 = mem_operands. */
+        LVAL            lval_id;
+        union {
+            usint8      register_id;
+            usint16     lval_mem_addr;
+        };
+
+        /* If we are not initializing with an address, it is safe to assume the LVAL is
+         * not a mem8/16 operand and, rather, it is a reg8/16.
+         * */
+        mov_instruction_data()
+            : lval_type(0x0) /* register_operands by default. */
+        {
+        }
+
+        /* If we are initializing with an address, it is safe to assume the LVAL is
+         * a mem8/16 operand.
+         * */
+        mov_instruction_data(uslng addr)
+            : lval_type(0x1)
+        {
+
+        }
+
+        template<typename RVAL>
+            requires std::is_same<RVAL, register_operands>::value
+                ||  std::is_same<RVAL, mem_operands>::value
+                ||  std::is_same<RVAL, immediate_operands>::value
+        void set_RVAL()
+        {}
+
+        ~mov_instruction_data()
+        {
+
+        }
+    };
+
     struct instruction_data
     {
         instructions        instruction_id;
@@ -57,7 +99,7 @@ namespace MocaAssembler
         /* So long as `lval_operand` is `reg8`, `reg16` or `reg32` this will
          * be assigned.
          * */
-        RegisterTokens  reg_id;
+        RegisterTokens      reg_id;
 
         usint8              lval_operand;
         usint8              rval_operand;
@@ -209,29 +251,17 @@ namespace MocaAssembler
 
         inline void write_instruction_to_bin()
         {
-            switch(idata->reg_id)
-            {
-                case RegisterTokens::R_ax:
-                {
-                    /* Instruction opcode. */
-                    write_bin(((opcode << 4) | r_ax_opcode));
+            for(auto &i: opcode_data)
+                if(i.first == (usint8)idata->reg_id)
+                    switch(opcode)
+                    {
+                        case mov_opcode:
+                        {
 
-                    /* Little Endian specific.
-                     * Write the value stored in `al`.
-                     *
-                     * Little Endian means the least significant (rightmost 8 bits) get
-                     * written first and the most significant (leftmost 8 bits) get written last.
-                     * 
-                     * */
-                    write_bin(AssemblerCommon::LE_get_rightmost_byte(get_r_ax_value()));
-
-                    /* Write the value stored in `ah`. */
-                    write_bin(AssemblerCommon::LE_get_leftmost_byte(get_r_ax_value()));
-
-                    break;
-                }
-                default: break;
-            }
+                            break;
+                        }
+                        default: break;
+                    }
         }
 
         /* Same concept as `write_bin`. This is not needed,
