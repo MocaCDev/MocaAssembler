@@ -48,10 +48,8 @@ namespace MocaAssembler_PreProcessor
 
                         /* imm[8,16,32] */
                         attempt_get_expected_token(tok, get_line(), 0, false, true, '[');
-                        printf("%s", tok.get_token_value());
-                        ///std::string value{(cp_int8)tok.get_token_value()};
-                        //printf("%X", std::stol(value, nullptr, 0x10));
 
+                        /* Perform check on the token to make sure it is valid. */
                         const auto perform_check = [this, &tok](const cp_int8 array[], uslng array_size, cp_int8 err_msg)
                         {
                             for(uslng i = 0; i < array_size; i++)
@@ -80,6 +78,48 @@ namespace MocaAssembler_PreProcessor
                             sizeof(data_type_token_values)/sizeof(data_type_token_values[0]),
                             "[Invalid Token]\n\tOn line %ld in `%s`, there is an attempt to use a data type value (`%s`) as a memory operand.\n");
                         
+                        /* Skip closing bracket of memory operand. */
+                        set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
+                        attempt_get_expected_token(tok, get_line(), ']');
+                        attempt_get_expected_token(tok, get_line(), ',');
+
+                        /* RVAL cannot be a memory operand. */
+                        moca_assembler_assert(
+                            !(get_current_char() == '[') && !(seek_and_return(1) == '['),
+                            InvalidCombination,
+                            "[Invalid Combination]\n\tOn line %ld in `%s` there is an invalid combination of opcode and operands.\n",
+                            get_line(), get_filename())
+
+                        /* Kinda messy, but it works.
+                         *
+                         * The below code just allows us to not get an error from the lexer if, in fact, the
+                         * line is as follows:
+                         *  mov [addr], dec/hex
+                         *  mov byte [addr], dec/hex
+                         *  mov word [addr], dec/hex
+                         *
+                         * The lexer likes to bitch if it finds a digit as the current character and was not told
+                         * to expect it.
+                         * */
+                        if(is_number(get_current_char()) || is_number(seek_and_return(1)))
+                            set_token_types_to_expect(TokenTypes::datatype_tokens, TokenTypes::Empty);
+                        else
+                            set_token_types_to_expect(TokenTypes::register_tokens, TokenTypes::variable_declaration);
+
+                        attempt_get_expected_token(tok, get_line());
+                        printf("%s", tok.get_token_value());
+
+                        moca_assembler_assert(
+                            (tok.get_token_id() >= 0x06 && tok.get_token_id() <= 0x11) || 
+                            tok.get_token_id() == (usint8)VariableDeclaration::VarDec ||
+                            (tok.get_token_id() >= (usint8)DataTypeTokens::DT_hex && tok.get_token_id() <= (usint8)DataTypeTokens::DT_dec),
+                            InvalidCombination,
+                            "[Invalid Combination]\n\tOn line %ld in `%s` there is a invalid combination of opcode and operands.\n",
+                            get_line(), get_filename())
+                        
+                        
+                        exit(0);
+
                         /* Debug.
                          * TODO: Finish the code that is in accordance to a mov instruction working
                          * with an imm[8/16/32] value.
@@ -229,6 +269,7 @@ namespace MocaAssembler_PreProcessor
                             skip_second_line = true;
                             /* This still has to be done, otherwise an error will be thrown. */
                             tok = try_get_token<DataTypeTokens>(0, true, true);
+                            
                             break;
                         }
                         default:break;
@@ -243,16 +284,17 @@ namespace MocaAssembler_PreProcessor
          * type of tokens we expect to get, and thereafter the token value being nullptr the
          * preprocessor/parser can safely assume the required token was not valid on the given line.
          * */
-        TokenTypes token_type_to_expect[2];
-        constexpr void set_token_types_to_expect(TokenTypes t1, TokenTypes t2)
+        TokenTypes token_type_to_expect[3];
+        constexpr void set_token_types_to_expect(TokenTypes t1, TokenTypes t2, TokenTypes t3 = TokenTypes::Empty)
         {
             token_type_to_expect[0] = t1;
             token_type_to_expect[1] = t2;
+            token_type_to_expect[2] = t3;
         }
 
         void attempt_get_expected_token(token& tok, uslng line, usint8 expected = 0, bool var_needs_expl = true, bool skip_a_val = false, usint8 val = 0)
         {
-            for(usint8 i = 0; i < 2; i++)
+            for(int i = 0; i < 3; i++)
             {
                 if(token_type_to_expect[i] == TokenTypes::Empty) break;
 
@@ -316,7 +358,7 @@ namespace MocaAssembler_PreProcessor
             /* Perform the according checks. */
             preprocessor_checks(tok, p_lines_to_ignore, has_code);
 
-            //see_names((usint8)assembler_get_bit_type());
+            see_names((usint8)assembler_get_bit_type());
 
             reset_lexer_data();
             reset_assembler_data();

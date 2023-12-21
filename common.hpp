@@ -97,6 +97,9 @@ typedef const unsigned long long*	cp_uslng_lng;
 #define UnexpectedEOF			0x0012
 #define UnexpectedNewline		0x0013
 #define VariableNotFound		0x0014
+#define InvalidAddress			0x0015
+#define InvalidCombination		0x0016
+#define InvalidOperands			0x0017
 #define UnknownError			0xFFFF
 
 #define moca_assembler_error(exit_code, msg, ...)		\

@@ -21,21 +21,21 @@ namespace MocaAssembler
 
     enum class register_operands
     {
-        reg8    = 0x0,
+        reg8    = 0x3,
         reg16,
         reg32
     };
 
     enum class mem_operands
     {
-        mem8    = 0x3,
+        mem8    = 0x6,
         mem16,
         mem32
     };
 
     enum class immediate_operands
     {
-        imm8    = 0x6,
+        imm8    = 0x9,
         imm16,
         imm32
     };
@@ -55,12 +55,24 @@ namespace MocaAssembler
             || std::is_same<LVAL, mem_operands>::value)
     struct mov_instruction_data
     {
-        usint8          lval_type; /* 0x0 = register_operands, 0x1 = mem_operands. */
+        usint8          lval_type; /* 0x0 = register_operands, 0x1 = mem_operands, 0x2 = immediate_operands. */
         LVAL            lval_id;
         union {
             usint8      register_id;
-            usint16     lval_mem_addr;
-        };
+            usint16     lval_mem_addr;  /* for `mov [addr], reg` */
+            usint16     lval_value;     /* for `mov value, reg` */
+        } lval;
+
+        /* 0x0 = register_operands (register_id), 
+         * 0x1 = mem_operands (lval_mem_addr),
+         * 0x2 = immediate_operands (lval_value)
+         * */
+        usint8          rval_type;
+        union {
+            usint8      register_id;
+            usint16     rval_mem_addr;  /* for `mov reg, [addr]` */
+            usint16     rval_value;     /* for `mov reg, value` */
+        } rval;
 
         /* If we are not initializing with an address, it is safe to assume the LVAL is
          * not a mem8/16 operand and, rather, it is a reg8/16.
@@ -68,6 +80,7 @@ namespace MocaAssembler
         mov_instruction_data()
             : lval_type(0x0) /* register_operands by default. */
         {
+            /* TODO: Do we need a `moca_assembler_assert` here? As of right now I do not think we do. */
         }
 
         /* If we are initializing with an address, it is safe to assume the LVAL is
@@ -75,21 +88,46 @@ namespace MocaAssembler
          * */
         mov_instruction_data(uslng addr)
             : lval_type(0x1)
-        {
+        {}
 
+        template<typename T>
+            requires std::is_same<T, usint8>::value
+                || std::is_same<T, usint16>::value
+        void set_LVAL(LVAL id, T lval_value)
+        {
+            lval_id = id;
+
+            switch(lval_type)
+            {
+                case 0x0: lval.register_id = lval_value;break;
+                case 0x1: lval.lval_mem_addr = lval_value;break;
+                case 0x2: lval.lval_value = lval_value;break;
+                default: break;
+            }
         }
 
+        /* TODO: Figure out if the below template will, at all, be needed. 
         template<typename RVAL>
             requires std::is_same<RVAL, register_operands>::value
                 ||  std::is_same<RVAL, mem_operands>::value
-                ||  std::is_same<RVAL, immediate_operands>::value
-        void set_RVAL()
-        {}
-
-        ~mov_instruction_data()
+                ||  std::is_same<RVAL, immediate_operands>::value*/
+        template<typename T>
+            requires std::is_same<T, usint8>::value /* register_id */
+                || std::is_same<T, usint16>::value  /* lval_mem_addr/lval_value */
+        void set_RVAL(usint8 RVAL_id, T value)
         {
+            rval_type = RVAL_id;
 
+            switch(rval_type)
+            {
+                case 0x0: rval.register_id = value;break;
+                case 0x1: rval.rval_mem_addr = value;break;
+                case 0x2: rval.rval_value = value;break;
+                default: moca_assembler_error(UnknownError, "[Unknown Error]\n\tAn unknown error occurred while assigning instruction data.\n")
+            }
         }
+
+        ~mov_instruction_data() = default;
     };
 
     struct instruction_data
@@ -113,7 +151,7 @@ namespace MocaAssembler
     class Assembler : private ElfGenerator, protected Variables, protected RegisterValues
     {
     private:
-        uslng program_counter = 0;
+        uslng program_counter = 1;
         uslng origin = 0;
         FILE *bin_data;
         uslng bin_data_index = 0;
@@ -249,19 +287,66 @@ namespace MocaAssembler
             increment_program_counter();
         }
 
-        inline void write_instruction_to_bin()
+        template<typename T>
+        requires (std::is_same<T, register_operands>::value
+            || std::is_same<T, mem_operands>::value)
+        inline void write_instruction_to_bin(struct mov_instruction_data<T> midata)
         {
-            for(auto &i: opcode_data)
-                if(i.first == (usint8)idata->reg_id)
-                    switch(opcode)
-                    {
-                        case mov_opcode:
-                        {
+            const auto LVAL_REG_get_instruction_opcode = [this, &midata](MovTypes mtype)
+            {
+                switch(mtype)
+                {
+                    case MovTypes::regular_mov: return reg_mov_instructions[midata.lval.register_id];
+                    default: return (int8)-1;
+                }
+            };
 
-                            break;
-                        }
+            /* Generate opcode based on the LVAL being a register. */
+            const auto LVAL_REG_generate_opcode = [this, &midata, &LVAL_REG_get_instruction_opcode](bool is_reg8)
+            {
+                switch(midata.rval_type)
+                {
+                    case 0x0: /* register_operands */
+                    {
+                        break;
+                    }
+                    case 0x1: /* mem_operands */
+                    {
+                        break;
+                    }
+                    case 0x2: /* immediate_operands */
+                    {
+                        usint8 opcode = (usint8)LVAL_REG_get_instruction_opcode(MovTypes::regular_mov);
+                        write_bin(opcode);
+                        
+                        if(is_reg8)
+                            write_bin(midata.rval.rval_value & 0xFF);
+                        else
+                            write_bin(midata.rval.rval_value & 0xFFFF);
+
+                        break;
+                    }
+                }
+            };
+
+            switch(midata.lval_type)
+            {
+                case 0x0: /* register_operands */
+                {
+                    switch(midata.lval_id)
+                    {
+                        case register_operands::reg8:LVAL_REG_generate_opcode(true);break;
+                        case register_operands::reg16:LVAL_REG_generate_opcode(false);break;
                         default: break;
                     }
+                    break;
+                }
+                case 0x1: /* mem_operands */
+                {
+                    break;
+                }
+                default: break;
+            }
         }
 
         /* Same concept as `write_bin`. This is not needed,

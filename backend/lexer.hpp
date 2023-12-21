@@ -154,11 +154,13 @@ namespace MocaAssembler_Lexer
                         add:
                         keyword[i] = current_char;
                         i++;
+
+                        /* Skip the special character. */
+                        lexer_advance();
                     } else
                         if(is_ascii(current_char))
                             goto add;
 
-                    lexer_advance();
                     break;
                 }
 
@@ -195,6 +197,8 @@ namespace MocaAssembler_Lexer
             hexadecimal_value[i] = '\0';
             return hexadecimal_value;
         }
+
+        
 
         p_usint8 get_decimal()
         {
@@ -445,8 +449,12 @@ namespace MocaAssembler_Lexer
                 var_dec:
                 if(!var_needs_expl)
                 {
+                    /* Just to be safe. Probably not needed.
+                     * TODO: Figure out if this is worthwhile.
+                     * */
                     if(!is_ascii(current_char))
                         lexer_advance();
+
                     keyword = get_keyword(true);
 
                     tok.assign_token_data(keyword, (usint8)VariableDeclaration::VarDec, TokenTypes::variable_declaration);
@@ -578,7 +586,12 @@ namespace MocaAssembler_Lexer
 
                 if(current_char == '\'')
                 {
-                    printf("Character");
+                    /* We will leave it to the parser to decipher whether or not it was expecting a character only
+                     * or a string.
+                     * */
+                    //keyword = get_string();
+                    //std::cout << keyword << std::endl;
+
                     exit(0);
                 }
                 
@@ -601,7 +614,7 @@ namespace MocaAssembler_Lexer
                 attempt_to_tokenize(
                     reinterpret_cast<cp_int8>(keyword), general_token_values,
                     sizeof(general_token_values)/sizeof(general_token_values[0]),
-                    tok, TokenTypes::general_tokens, 0x12
+                    tok, TokenTypes::general_tokens, 0x14
                 );
 
                 attempt_go_back(keyword);
@@ -621,8 +634,8 @@ namespace MocaAssembler_Lexer
                 attempt_to_tokenize(
                     reinterpret_cast<cp_int8>(keyword), register_token_values, 
                     sizeof(register_token_values)/sizeof(register_token_values[0]), 
-                    tok, TokenTypes::register_tokens, 6);
-
+                    tok, TokenTypes::register_tokens, 0x08);
+                
                 attempt_go_back(keyword);
 
                 return tok;

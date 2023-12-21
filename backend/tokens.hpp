@@ -23,6 +23,8 @@ namespace MocaAssembler_Tokens
         DT_db   = 0x03,
         DT_dw   = 0x04,
         DT_dd   = 0x05,
+        DT_chr  = 0x06,
+        DT_str  = 0x07,
     };
 
     constexpr cp_int8 data_type_token_values[] = {
@@ -31,10 +33,10 @@ namespace MocaAssembler_Tokens
 
     enum class RegisterTokens : usint8
     {
-        R_ax = 0x06, R_ah = 0x07, R_al = 0x08,   /* ax, ah, al */
-        R_bx = 0x09, R_bh = 0x0A, R_bl = 0x0B,   /* bx, bh, bl */
-        R_cx = 0x0C, R_ch = 0x0D, R_cl = 0x0E,   /* cx, ch, cl */
-        R_dx = 0x0F, R_dh = 0x10, R_dl = 0x11    /* dx, dh, dl */
+        R_ax = 0x08, R_ah = 0x09, R_al = 0x0A,   /* ax, ah, al */
+        R_bx = 0x0B, R_bh = 0x0C, R_bl = 0x0D,   /* bx, bh, bl */
+        R_cx = 0x0E, R_ch = 0x0F, R_cl = 0x10,   /* cx, ch, cl */
+        R_dx = 0x11, R_dh = 0x12, R_dl = 0x13    /* dx, dh, dl */
     };
 
     constexpr cp_int8 register_token_values[] = {
@@ -46,13 +48,13 @@ namespace MocaAssembler_Tokens
 
     enum class GeneralTokens : usint8
     {
-        GK_byte     = 0x12,     /* byte */
-        GK_word     = 0x13,     /* word */
-        GK_dword    = 0x14,     /* dword */
-        GK_use16    = 0x15,     /* `use16` */
-        GK_use32    = 0x16,     /* `use32` */
-        GK_org      = 0x17,     /* `org` */
-        GK_eof      = 0x18      /* End Of File (EOF) */
+        GK_byte     = 0x14,     /* byte */
+        GK_word     = 0x15,     /* word */
+        GK_dword    = 0x16,     /* dword */
+        GK_use16    = 0x17,     /* `use16` */
+        GK_use32    = 0x18,     /* `use32` */
+        GK_org      = 0x19,     /* `org` */
+        GK_eof      = 0x1A      /* End Of File (EOF) */
     };
 
     constexpr cp_int8 general_token_values[] = {
@@ -63,9 +65,9 @@ namespace MocaAssembler_Tokens
 
     enum class GrammarTokens : usint8
     {
-        GR_comma        = 0x16,
-        GR_left_brack   = 0x17,
-        GR_right_brack  = 0x18
+        GR_comma        = 0x1B,
+        GR_left_brack   = 0x1C,
+        GR_right_brack  = 0x1D
     };
 
     enum class TokenTypes
@@ -81,8 +83,8 @@ namespace MocaAssembler_Tokens
 
     enum class VariableDeclaration : usint8
     {
-        VarDec,
-        SubVarDec,
+        VarDec          = 0x1E,
+        SubVarDec       = 0x1F,
     };
 
     class token

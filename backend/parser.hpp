@@ -84,8 +84,28 @@ namespace MocaAssembler_Parser
                         set_token_types_to_expect(TokenTypes::variable_declaration, TokenTypes::datatype_tokens);
 
                         attempt_get_expected_token(tok, get_line(), 0, false);
-                        printf("%s!.", tok.get_token_value());
-                        //struct mov_instruction_data<mem_operands> id;
+                        
+                        switch(tok.get_token_id())
+                        {
+                            case (usint8)DataTypeTokens::DT_hex:
+                            {
+                                std::string hex_value{(cp_int8)tok.get_token_value()};
+                                printf("%lX", std::stol(hex_value, nullptr, 0x10));
+                                exit(0);
+                            }
+                            case (usint8)DataTypeTokens::DT_dec:
+                            {
+                                std::string dec_value{(cp_int8)tok.get_token_value()};
+                                printf("%lX", std::stol(dec_value, nullptr, 0xA));
+                                exit(0);
+                            }
+                            case (usint8)VariableDeclaration::VarDec:
+                            {
+                                printf("%s", tok.get_token_value());
+                                exit(0);
+                            }
+                            default: break;
+                        }
 
                         /* Debug.
                          * TODO: Finish the code that is in accordance to a mov instruction working
@@ -97,6 +117,19 @@ namespace MocaAssembler_Parser
                     set_token_types_to_expect(TokenTypes::register_tokens, TokenTypes::general_tokens);
 
                     attempt_get_expected_token(tok, get_line());
+
+                    /* This will construct a structure with a `lval_type` of 0x0 by default. (0x0 = register operand)*/
+                    struct mov_instruction_data<register_operands> instruction_data;
+
+                    /* Figure out the register operand ID. */
+                    switch(tok.get_token_id())
+                    {
+                        case (usint8)RegisterTokens::R_ax:
+                        case (usint8)RegisterTokens::R_bx:
+                        case (usint8)RegisterTokens::R_cx:
+                        case (usint8)RegisterTokens::R_dx: instruction_data.set_LVAL<usint8>(register_operands::reg16, (usint8)tok.get_token_id());break;
+                        default: instruction_data.set_LVAL<usint8>(register_operands::reg8, (usint8)tok.get_token_id());break;
+                    }
                     
                     /* Temporary.
                      *
@@ -105,14 +138,12 @@ namespace MocaAssembler_Parser
                     usint8 reg_name[4];
                     std::memcpy(reg_name, tok.get_token_value(), strlen((cp_int8)tok.get_token_value()));
 
-                    //passembler->assembler_set_lval(tok.get_token_id());
-
                     set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
-                    
                     attempt_get_expected_token(tok, get_line(), ',');
                     
                     if(seek_and_return(1) == '[')
                     {
+                        /* TODO: Add support for this next. */
                         set_token_types_to_expect(TokenTypes::grammar_tokens, TokenTypes::Empty);
                         attempt_get_expected_token(tok, get_line(), '[');
 
@@ -133,19 +164,12 @@ namespace MocaAssembler_Parser
                         attempt_get_expected_token(tok, get_line(), ']');
 
                         /* For the time being. */
-                        write_to_binary();
+                        //write_to_binary();
 
                         exit(EXIT_FAILURE);
                     }
 
                     set_token_types_to_expect(TokenTypes::datatype_tokens, TokenTypes::register_tokens);
-                    
-                    /* This has to be done otherwise, for some reason, `passembler->idata` does
-                     * not keep its values.
-                     * */
-                    struct instruction_data idata_copied = *passembler->idata;
-                    delete passembler->idata;
-
                     attempt_get_expected_token(tok, get_line());
 
                     if(tok.get_token_type_id() == TokenTypes::datatype_tokens)
@@ -155,23 +179,21 @@ namespace MocaAssembler_Parser
                         {
                             case (usint8)DataTypeTokens::DT_hex:
                             {
-                                passembler->assembler_set_rval_imm(
-                                    idata_copied,
-                                    std::stol(value, nullptr, 0x10),
-                                    get_line(),
-                                    get_filename());
-
+                                instruction_data.set_RVAL<usint16>(0x2, std::stol(value, nullptr, 0x10) & 0xFFFF);
                                 break;
                             }
                             case (usint8)DataTypeTokens::DT_dec:
                             {
-                                std::cout << "Dec" << std::endl;
+                                /* TODO: Should the `std::stol` below be `atoi((cp_int8)tok.get_token_value())` instead?
+                                 * If this change is implemented, put `std::string value` inside of the `case` statement above.
+                                 * */
+                                instruction_data.set_RVAL<usint16>(0x2, std::stol(value, nullptr, 0x0A) & 0xFFFF);
                                 break;
                             }
                             default: moca_assembler_error(InvalidDataTypeToken, "Invalid Data Type Token.\n")
                         }
 
-                        passembler->write_instruction_to_bin();
+                        passembler->write_instruction_to_bin<register_operands>(instruction_data);
 
                         break;
                     }
@@ -312,7 +334,7 @@ namespace MocaAssembler_Parser
 
 
 
-            write_to_binary();
+            passembler->write_to_binary();
         }
 
     public:
@@ -333,8 +355,9 @@ namespace MocaAssembler_Parser
                 parse_variable_declaration(tok);
             }
             
-            start_preprocessor(p_lines_to_ignore, tok, true);//has_code);
+            start_preprocessor(p_lines_to_ignore, tok, has_code);
 
+            tok.reset_token_data();
             passembler = &return_assembler();
             parser_next(tok);
         }

@@ -1,14 +1,11 @@
 use16
 org 0x7C00
 
-;
-; Test comment
-;
+mov ah, 14
+mov al, 0xE
+mov ax, 0xFF
+;mov al, 'A'
+;int 0x10
 
-mov [test2], ax
-mov ax, 0x6FF8
-mov ax, 0xF86F
-mov ax, [test2]
-
-;!test2 dd 0x0
-;!test3 db 0x0
+;times 510 - $ db 0x0
+;dw 0xAA55

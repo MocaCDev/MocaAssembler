@@ -1,6 +1,6 @@
 if [ "$#" -ne 1 ];
 then
-	python3 p.py ./bin/main.o tests/test1.masm
+	python3 time.py ./bin/main.o tests/test1.masm
 else
-	python3 p.py ./bin/main.o $1
+	python3 time.py ./bin/main.o $1
 fi

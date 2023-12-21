@@ -5,13 +5,24 @@
 
 #define r_ax_opcode     (usint8)0x8
 #define r_ah_opcode     (usint8)(r_ax_opcode >> 1) & 0xFF
-#define r_al_opcode     (usint8)(r_ah_opcode >> 4) & 0xFF
+#define r_al_opcode     (usint8)(r_ax_opcode >> 4) & 0xFF
 
 enum class RegularMov
 {
     mov_ax      = (mov_opcode << 4) | r_ax_opcode,
     mov_ah      = (mov_opcode << 4) | r_ah_opcode,
     mov_al      = (mov_opcode << 4) | r_al_opcode
+};
+
+/* TODO: Probably remove this and approach this a different way. For now, this works. */
+constexpr int8 reg_mov_instructions[] = {
+    0, 0, 0, 0, 0, 0, 0, 0,
+    (int8)RegularMov::mov_ax, (int8)RegularMov::mov_ah, (int8)RegularMov::mov_al
+};
+
+enum class MovTypes
+{
+    regular_mov
 };
 
 #ifdef __cplusplus
